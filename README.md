@@ -1,4 +1,4 @@
-# MPC2Reaper
+# MPC Sample to Reaper Project
 
 Convert an **Akai MPC** project export (`.xpj` + `[ProjectData]` folder, as saved by
 MPC 3 software / MPC Sample engine mode) into a native **REAPER** project (`.rpp`)

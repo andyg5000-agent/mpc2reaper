@@ -1,4 +1,4 @@
-# mpc2rpp
+# MPC2Reaper
 
 Convert an **Akai MPC** project export (`.xpj` + `[ProjectData]` folder, as saved by
 MPC 3 software / MPC Sample engine mode) into a native **REAPER** project (`.rpp`)
@@ -110,6 +110,20 @@ The reverse-engineered notes on the MPC project format (container layout,
 fader law, the 16 Levels modifier encoding, automation parameter IDs, routing
 destinations) live in [docs/FORMAT.md](docs/FORMAT.md). If your project uses
 a feature the converter skips, those notes are the place to start.
+
+## Related projects
+
+- [MPC2Live](https://github.com/Duffman007/MPC2Live) — the same idea aimed at
+  Ableton Live: converts MPC `.xpj` projects to `.als` (Drum Racks + MIDI
+  clips + Simpler). macOS/Swift. If Live is your DAW, use that.
+- [MPC-project-file-definitions](https://github.com/kurtjcu/MPC-project-file-definitions) —
+  community knowledge base reverse-engineering the MPC 3.7+ project format.
+  Broader field coverage than this repo's [FORMAT.md](docs/FORMAT.md); both
+  are observed-behavior docs, so cross-check against each other.
+
+As far as I can tell, this is the first `.xpj` → REAPER converter; the
+approach here (baked audio items rather than MIDI + sampler) also differs
+from MPC2Live, favoring immediate timeline editing over re-triggering.
 
 ## License
 

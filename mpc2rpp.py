@@ -314,26 +314,33 @@ def main():
             w(f"{pad_}  WAK 0 0")
         w(f"{pad_}>")
 
-    def notes_chunk(indent, text_lines):
-        pad_ = " " * indent
-        w(f"{pad_}<NOTES")
-        for t in text_lines:
-            w(f"{pad_}  |{t}")
-        w(f"{pad_}>")
-
     w('<REAPER_PROJECT 0.1 "7.0" 0')
     w(f"  TEMPO {sequences[0]['bpm']:g} 4 4")
     master_vol = fader_gain(d["mixer"]["volume"])
     w(f"  MASTER_VOLUME {master_vol:.6f} 0 -1 -1 1")
     if args.with_effects:
         skipped_fx = [n for n in main_fx if "compressor" not in n.lower()]
-        proj_notes = ["Converted from MPC Sample project: " + stem]
+        proj_notes = ["Converted from MPC project: " + stem]
+        for p in submix_pads:
+            proj_notes.append(f"'{pads[p]['name']}' was routed to the MPC "
+                              "submix (receive on the submix bus track)")
+        if submix_fx and submix_pads:
+            proj_notes.append("MPC submix inserts: " + ", ".join(submix_fx)
+                              + " (settings not portable; stock JS delay at "
+                              "defaults as a starting point)")
+        comp = [n for n in main_fx if "compressor" in n.lower()]
+        if comp:
+            proj_notes.append("MPC main-output compressor: " + ", ".join(comp)
+                              + " (stock JS compressor at defaults on master)")
         if skipped_fx:
             proj_notes.append(
                 "MPC main-output FX not ported (performance-triggered): "
                 + ", ".join(skipped_fx))
-        notes_chunk(2, proj_notes)
-        comp = [n for n in main_fx if "compressor" in n.lower()]
+        # NOTES is only valid at project level; REAPER writes it as "NOTES 0 2"
+        w("  <NOTES 0 2")
+        for t in proj_notes:
+            w(f"    |{esc(t)}")
+        w("  >")
         if comp:
             # stock JS compressor at defaults; MPC state is not portable
             w("  <MASTERFXLIST")
@@ -371,8 +378,6 @@ def main():
         w(f"    VOLPAN {fader:.6f} {p['pan']:.6f} -1 -1 1")
         if to_submix:
             w("    MAINSEND 0 0")
-            notes_chunk(4, ["Routed to Submix 1 on the MPC "
-                            f"({', '.join(submix_fx) or 'no inserts'})"])
         if vol_pts:
             w("    <VOLENV2")
             w("      ACT 1 -1")
@@ -417,14 +422,14 @@ def main():
 
     if args.with_effects and submix_pads and submix:
         sub_vol = fader_gain(submix["mixable"]["volume"])
+        sub_name = submix.get("name", "Submix")
+        if submix_fx:
+            sub_name += f" ({', '.join(submix_fx)})"
         w("  <TRACK")
-        w(f'    NAME "{esc(submix.get("name", "Submix"))}"')
+        w(f'    NAME "{esc(sub_name)}"')
         w(f"    VOLPAN {sub_vol:.6f} 0 -1 -1 1")
         for p in submix_pads:
             w(f"    AUXRECV {used_pads.index(p)} 0 1 0 0 0 0 0 0 -1:U 0 -1 ''")
-        notes_chunk(4, [f"MPC insert: {n} (settings not portable, JS delay "
-                        "inserted at defaults as a starting point)"
-                        for n in submix_fx])
         if any("delay" in n.lower() for n in submix_fx):
             js_fxchain(4, ["delay/delay"])
         w("  >")
